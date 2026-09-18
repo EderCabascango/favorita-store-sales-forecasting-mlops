@@ -1,0 +1,64 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Data Files & Artifacts (Grandes archivos que no deben subirse a Git)
+data/raw/*.csv
+data/processed/**/*.parquet
+data/processed/*.parquet
+!data/schemas/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Logs and databases
+*.log
+*.sqlite
+*.duckdb
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
