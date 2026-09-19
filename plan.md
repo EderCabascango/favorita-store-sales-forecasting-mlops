@@ -110,11 +110,15 @@ retail-intelligence-platform/
   - [x] Features de intensidad de promociones (`promo_intensity`, `promo_roll_mean_14`).
   - [x] Generación de `data/processed/features_master.parquet` (2.17M filas x 54 columnas).
 
-- [ ] **Fase 4: Estrategia de Validación y Modelado Predictivo**
-  - [ ] Implementar validación temporal purgada (*Purged TimeSeries Split*).
-  - [ ] Implementar modelos de referencia (Baselines: Naive, Seasonal Naive 7d).
-  - [ ] Implementar modelo principal (LightGBM / CatBoost multi-serie).
-  - [ ] Evaluación técnica ($RMSLE$, $MAE$, $WAPE$) vs. impacto de inventario (Stockout vs Overstock).
+- [x] **Fase 4: Estrategia de Validación y Modelado Predictivo (Completada)**
+  - [x] Implementar validación temporal purgada en `src/retail_platform/models/split.py` (Train: 2.11M filas, Val: 28.5K filas / 16 días, Test: 28.5K filas).
+  - [x] Implementar métricas de negocio y ML en `src/retail_platform/evaluation/metrics.py` ($RMSLE$, $MAE$, $RMSE$, $WAPE$, $Bias$).
+  - [x] Implementar y evaluar modelos de referencia en `src/retail_platform/models/baseline/` (Moving Average 7d: RMSLE 0.5624 | Seasonal Naive: RMSLE 0.6330 | Naive: RMSLE 0.6967).
+  - [x] Crear notebook `notebooks/02_baseline_evaluation.ipynb` como orquestador y comparativa visual.
+  - [x] Implementar y entrenar modelos multi-serie (LightGBM y XGBoost) en `src/retail_platform/models/forecasting/`.
+  - [x] Implementar módulo de Ensamble (`ensemble.py`) combinando LightGBM + XGBoost.
+  - [x] Benchmark de validación completo: XGBoost logra **RMSLE = 0.4130**, Ensemble logra **RMSLE = 0.4157**, y LightGBM **RMSLE = 0.4239** (reduciendo el error más de 26% sobre baselines).
+  - [x] Serialización de artefactos (`lgbm_forecaster.joblib`, `xgboost_forecaster.joblib`, `ensemble_forecaster.joblib`) y generación de `data/processed/submission.csv`.
 
 - [ ] **Fase 5: MLOps, API y Serving**
   - [ ] Pipeline de inferencia desacoplado en `src/retail_platform/models/forecasting/`.
@@ -167,3 +171,47 @@ retail-intelligence-platform/
   1. Implementación de `src/retail_platform/features/time_features.py` (estacionalidad semanal, mensual, cíclica sin/cos y quincenas ecuatorianas del día 15 y fin de mes).
   2. Implementación de `src/retail_platform/features/lag_features.py` con target transformado a `log1p(sales)`, retardos seguros a partir de $t-16$ ($t-16, t-17, t-18, t-19, t-20, t-21, t-28, t-35, t-42$), medias móviles (7, 14, 30, 60 días), desviaciones estándar y EWMA.
   3. Implementación de `src/retail_platform/features/builder.py`: generación de `features_master.parquet` con 54 variables de alta calidad y sin data leakage en 32 segundos.
+
+### Sesión 1 (Continuación 4) — 18/09/2026
+- **Acciones realizadas en Validación y Baselines:**
+  1. Implementación de `src/retail_platform/models/split.py` con separación estricta:
+     - Train: `2014-05-01` a `2017-07-30` (2,115,234 filas).
+     - Validation: `2017-07-31` a `2017-08-15` (28,512 filas / 16 días).
+     - Test: `2017-08-16` a `2017-08-31` (28,512 filas / 16 días).
+  2. Implementación de `src/retail_platform/evaluation/metrics.py` con $RMSLE$, $MAE$, $RMSE$, $WAPE$ y $Bias$ de inventario.
+  3. Implementación de `src/retail_platform/models/baseline/` con `NaiveBaseline`, `SeasonalNaiveBaseline` y `MovingAverageBaseline`.
+  4. Benchmark de baselines en validación:
+     - Moving Average 7d: $RMSLE = 0.5624$ | $WAPE = 20.71\%$
+     - Seasonal Naive (Lag 21): $RMSLE = 0.6330$ | $WAPE = 19.85\%$
+     - Naive (Lag 16): $RMSLE = 0.6967$ | $WAPE = 31.09\%$
+  5. Creación del notebook orquestador `notebooks/02_baseline_evaluation.ipynb`.
+
+### Sesión 1 (Continuación 5) — 18/09/2026
+- **Acciones realizadas en Modelado Predictivo (Fase 4):**
+  1. Implementación de `src/retail_platform/models/forecasting/lgbm_forecaster.py` con manejo de variables categóricas nativas y optimización sobre $\text{log\_sales}$.
+  2. Implementación de `src/retail_platform/models/forecasting/train.py` que orquesta la división temporal, el benchmark de baselines, el entrenamiento de LightGBM, la extracción de feature importances y la inferencia sobre `test.csv`.
+  3. Resultados del Benchmark en Validación (2017-07-31 a 2017-08-15):
+     - **LightGBM Global Multi-Serie:** $RMSLE = 0.4239$ | $WAPE = 16.45\%$ | $MAE = 76.82$ (¡Mejora de 24.6% en RMSLE sobre el mejor baseline!)
+     - **Moving Average 7d (Shift 16):** $RMSLE = 0.5624$ | $WAPE = 20.71\%$
+     - **Seasonal Naive (Lag 21):** $RMSLE = 0.6330$ | $WAPE = 19.85\%$
+     - **Naive Simple (Lag 16):** $RMSLE = 0.6967$ | $WAPE = 31.09\%$
+  4. Top Features por Ganancia: `sales_roll_mean_7`, `sales_lag_21`, `sales_ewm_alpha_03`, `sales_ewm_alpha_01`, `sales_roll_mean_60`.
+  5. Artefacto serializado en `models/artifacts/lgbm_forecaster.joblib` y predicciones en `data/processed/submission.csv`.
+
+### Sesión 1 (Continuación 6) — 18/09/2026
+- **Acciones realizadas en Ensamble y Modelado Avanzado:**
+  1. Implementación de `src/retail_platform/models/forecasting/xgboost_forecaster.py` con `tree_method='hist'` y soporte nativo de categorías.
+  2. Implementación de `src/retail_platform/models/forecasting/ensemble.py` con estrategia de *Blending* (LightGBM 50% + XGBoost 50%).
+  3. Ejecución del pipeline consolidado en ~68 segundos sobre 2.11M de filas.
+  4. Resultados comparativos finales en validación (2017-07-31 a 2017-08-15):
+     - **XGBoost Global Multi-Serie:** $RMSLE = 0.4130$ | $MAE = 71.17$ | $WAPE = 15.23\%$ | $Bias = -2.34\%$
+     - **Ensemble (LGBM 50% + XGB 50%):** $RMSLE = 0.4157$ | $MAE = 72.52$ | $WAPE = 15.52\%$ | $Bias = -4.44\%$
+     - **LightGBM Global Multi-Serie:** $RMSLE = 0.4239$ | $MAE = 76.82$ | $WAPE = 16.45\%$ | $Bias = -6.54\%$
+     - **Moving Average 7d:** $RMSLE = 0.5624$ | $WAPE = 20.71\%$
+     - **Seasonal Naive (Lag 21):** $RMSLE = 0.6330$ | $WAPE = 19.85\%$
+     - **Naive Simple (Lag 16):** $RMSLE = 0.6967$ | $WAPE = 31.09\%$
+  5. Generación del archivo de predicciones de prueba con el Ensamble en `data/processed/submission.csv`.
+
+### Decisión de Arquitectura: Elección de XGBoost como Champion Model
+- **Justificación:** En el benchmark de validación, **XGBoost Global Multi-Serie** demostró ser el mejor modelo individual ($RMSLE = 0.4130$, $WAPE = 15.23\%$, $Bias = -2.34\%$).
+- **Descarte del Ensamble para Producción:** El ensamble 50/50 obtuvo $RMSLE = 0.4157$. Al compartir la misma familia algorítmica (árboles de decisión con 49 features idénticos), los residuos estaban altamente correlacionados y LightGBM diluyó la precisión de XGBoost. Descartar el ensamble reduce la latencia de inferencia y la memoria en la API a la mitad.

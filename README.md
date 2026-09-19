@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Architecture](https://img.shields.io/badge/Architecture-Medallion%20Lakehouse-orange.svg)](#arquitectura-del-sistema)
-[![Status](https://img.shields.io/badge/Status-Fase%201%20%26%203%20Completadas-success.svg)](#estado-del-proyecto)
+[![Status](https://img.shields.io/badge/Status-Fase%204%20ML%20Benchmark%20Completada-success.svg)](#estado-del-proyecto)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 Plataforma integral de **Data Engineering, Feature Store y Machine Learning Forecasting** diseñada para resolver el problema de predicción de demanda multi-serie jerárquica en el sector Retail (Corporación Favorita, Ecuador).
@@ -57,7 +57,32 @@ El procesamiento de datos sigue un flujo desacoplado, modular y altamente eficie
 
 ---
 
-## 📂 4. Estructura del Repositorio
+
+---
+
+## 🏆 4. Benchmark de Modelos y Resultados en Validación
+
+Validamos los modelos sobre la ventana temporal estricta de 16 días (`2017-07-31` a `2017-08-15`, 28,512 observaciones) simulando las condiciones exactas de inferencia real:
+
+| Modelo | $RMSLE$ (Menor es mejor) | $MAE$ (Unidades) | $RMSE$ | $WAPE (\%)$ | $Bias (\%)$ (Sesgo Inventario) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| 🥇 **XGBoost Global Multi-Serie** | **0.4130** | **71.17** | **254.34** | **15.23%** | **-2.34%** |
+| 🥈 **Ensemble (LGBM 50% + XGB 50%)** | **0.4157** | **72.52** | **262.49** | **15.52%** | **-4.44%** |
+| 🥉 **LightGBM Global Multi-Serie** | **0.4239** | 76.82 | 281.93 | 16.45% | -6.53% |
+| 4️⃣ **Moving Average 7d (Shift 16)** | 0.5624 | 96.73 | 327.20 | 20.71% | -4.17% |
+| 5️⃣ **Seasonal Naive (Lag 21 - Mismo día)** | 0.6330 | 92.72 | 335.98 | 19.85% | -2.22% |
+| 6️⃣ **Naive Simple (Lag 16)** | 0.6967 | 145.23 | 510.08 | 31.09% | +3.13% |
+
+> **Impacto Técnico:** El modelo **LightGBM Global redujo el error $RMSLE$ en un 24.6%** y el **$WAPE$ a 16.45%**, procesando el entrenamiento de 2.11M filas y la inferencia completa en solo **~25 segundos**.
+
+### 🔍 Top Variables Más Relevantes (Feature Importance por Ganancia):
+1. `sales_roll_mean_7`: Tendencia móvil de corto plazo (señal dominante).
+2. `sales_lag_21`: Estacionalidad semanal de 3 semanas atrás.
+3. `sales_ewm_alpha_03` / `sales_ewm_alpha_01`: Promedios exponenciales ponderados.
+4. `sales_roll_mean_60`: Tendencia de mediano plazo.
+5. `promo_roll_mean_14` & `family`: Intensidad promocional e identidad de producto.
+
+## 📂 5. Estructura del Repositorio
 
 ```text
 retail-intelligence-platform/
@@ -97,7 +122,7 @@ retail-intelligence-platform/
 
 ---
 
-## 🚀 5. Cómo Ejecutar el Proyecto Localmente
+## 🚀 6. Cómo Ejecutar el Proyecto Localmente
 
 ### 1. Clonar e Instalar el Entorno
 ```bash
@@ -108,7 +133,9 @@ cd retail-intelligence-platform
 pip install -e .
 ```
 
-### 2. Ejecutar el Pipeline de Datos (Bronze $ightarrow$ Silver $ightarrow$ Gold)
+### 2. Ejecutar el Pipeline de Datos (Bronze $
+ightarrow$ Silver $
+ightarrow$ Gold)
 Ejecuta todo el flujo de ingesta, tipado y cruce analítico en **~14 segundos**:
 ```bash
 python src/retail_platform/data_engine/pipeline.py
@@ -122,20 +149,21 @@ python src/retail_platform/features/builder.py
 
 ---
 
-## 🎯 6. Decisiones de Diseño Clave (ADRs Resumidos)
+## 🎯 7. Decisiones de Diseño Clave (ADRs Resumidos)
 
 1. **Modelo Global Multi-Serie vs 1,782 Modelos Locales:** Se adoptó un modelo global unificado (*Gradient Boosting*) para permitir transferencia de aprendizaje entre tiendas/familias similares y garantizar inferencias en milisegundos.
 2. **Garantía Anti-Leakage ($t \ge 16$):** Al tener un horizonte de pronóstico de 16 días, todos los retardos y estadísticas móviles parten de $t-16$, garantizando que el modelo sea 100% reproducible en un entorno de producción real.
 3. **Target Logarítmico $\ln(1 + 	ext{sales})$:** Nivelación del terreno de juego entre familias masivas y familias de baja rotación, alineando la optimización matemática con la métrica $RMSLE$.
+4. **XGBoost como Modelo Campeón y Descarte del Ensamble:** Se evaluó empíricamente un ensamble *Blending* (LightGBM + XGBoost). Sin embargo, fue descartado para producción bajo el principio de **Navaja de Ockham**: XGBoost individual superó al ensamble (0.4130 vs 0.4157 RMSLE) con un sesgo de inventario menor (-2.34% vs -4.44%), eliminando el doble consumo de RAM y la doble latencia en la API.
 
 ---
 
-## 📈 7. Estado del Roadmap
+## 📈 8. Estado del Roadmap
 
 - [x] **Fase 0:** Data Profiling, Auditoría de Calidad y EDA (`01_eda_and_data_quality.ipynb`).
 - [x] **Fase 1:** Pipeline de Data Engineering Medallion (`bronze.py`, `silver.py`, `gold.py`).
 - [x] **Fase 3:** Feature Store & Time Series Feature Engineering (`features_master.parquet`).
-- [ ] **Fase 4:** Validación Temporal Purgada, Baselines y Modelo Gradient Boosting (LightGBM/XGBoost).
+- [x] **Fase 4:** Validación Temporal Purgada, Baselines y Modelo Gradient Boosting (LightGBM: RMSLE = 0.4239 | WAPE = 16.45%).
 - [ ] **Fase 5:** Microservicio de Inferencia con FastAPI y Validación Pydantic.
 - [ ] **Fase 6:** Dashboard Interactivo con Streamlit, Dockerización y CI/CD con GitHub Actions.
 
