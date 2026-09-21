@@ -237,3 +237,8 @@ retail-intelligence-platform/
   2. Implementación de `docker/Dockerfile` y `docker-compose.yml` para levantar la API (puerto 8000) y el Dashboard (puerto 8501).
   3. Configuración de workflow de Integración Continua (CI/CD) con GitHub Actions en `.github/workflows/ci.yml`.
   4. Creación de `Makefile` para ejecución y pruebas estandarizadas.
+
+### Sesión 4 — 21/09/2026
+- **Acciones realizadas en Documentación Visual & Manual de Usuario:**
+  1. Integración de la captura oficial del Dashboard interactivo en `docs/assets/dashboard_preview.png` y presentación principal del `README.md`.
+  2. Elaboración del Manual de Usuario completo en [**`docs/user_guide_streamlit.md`**](file:///c:/Users/wladi/Desktop/Data%20Science/Proyectos%20Portafolio/Forecasting%20Favorita/docs/user_guide_streamlit.md) con guía de navegación por filtros, interpretación de KPIs, explicación de gráficos Plotly, uso del simulador de promociones y casos de uso para Supply Chain y Gerentes de Tienda.

@@ -5,7 +5,12 @@
 [![Status](https://img.shields.io/badge/Status-Proyecto%20E2E%20Completado%20100%25-success.svg)](#estado-del-proyecto)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Plataforma integral de **Data Engineering, Feature Store y Machine Learning Forecasting** diseñada para resolver el problema de predicción de demanda multi-serie jerárquica en el sector Retail (Corporación Favorita, Ecuador).
+Plataforma integral de **Data Engineering, Feature Store, Machine Learning Forecasting y MLOps** diseñada para resolver el problema de predicción de demanda multi-serie jerárquica en el sector Retail (Corporación Favorita, Ecuador).
+
+![Retail Demand Intelligence Dashboard](docs/assets/dashboard_preview.png)
+*Vista interactiva del Dashboard en Streamlit: Curva histórica, pronóstico multi-serie con XGBoost Champion, KPIs y Simulador de Elasticidad Promocional.*
+
+> 📖 **[Ver Manual de Usuario del Dashboard en docs/user_guide_streamlit.md](docs/user_guide_streamlit.md)**
 
 ---
 
