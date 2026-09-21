@@ -120,17 +120,18 @@ retail-intelligence-platform/
   - [x] Benchmark de validación completo: XGBoost logra **RMSLE = 0.4130**, Ensemble logra **RMSLE = 0.4157**, y LightGBM **RMSLE = 0.4239** (reduciendo el error más de 26% sobre baselines).
   - [x] Serialización de artefactos (`lgbm_forecaster.joblib`, `xgboost_forecaster.joblib`, `ensemble_forecaster.joblib`) y generación de `data/processed/submission.csv`.
 
-- [ ] **Fase 5: MLOps, API y Serving**
-  - [ ] Pipeline de inferencia desacoplado en `src/retail_platform/models/forecasting/`.
-  - [ ] API REST con FastAPI (`/predict`, `/health`, `/metrics`).
-  - [ ] Schemas de entrada/salida validados con Pydantic.
+- [x] **Fase 5: MLOps, API y Serving (Completada)**
+  - [x] Pipeline de inferencia desacoplado en `src/retail_platform/models/forecasting/`.
+  - [x] Schemas de entrada/salida validados con Pydantic (`PredictionRequest`, `PredictionResponse`, `HealthResponse`, `BenchmarkResponse`).
+  - [x] API REST con FastAPI (`/predict`, `/health`, `/benchmark`) con carga en memoria del modelo campeon XGBoost.
+  - [x] Suite de pruebas automatizadas con pytest en `tests/test_api.py` (5/5 tests pasados exitosamente).
 
-- [ ] **Fase 6: Dashboard de Negocio y Empaquetado**
-  - [ ] Dashboard en Streamlit para simulación de escenarios de demanda y promociones.
-  - [ ] Dockerfile y `docker-compose.yml`.
-  - [ ] Tests unitarios con `pytest`.
-  - [ ] CI/CD con GitHub Actions.
-  - [ ] `README.md` de alto impacto con diagramas y métricas.
+- [x] **Fase 6: Dashboard de Negocio y Empaquetado (Completada)**
+  - [x] Dashboard interactivo en Streamlit (`dashboards/app.py`) con filtros por tienda/familia, gráficos Plotly y simulador de elasticidad promocional.
+  - [x] Dockerfile multi-stage (`docker/Dockerfile`) y orquestación multi-contenedor (`docker-compose.yml`) para API y Dashboard.
+  - [x] Pipeline de CI/CD automatizado con GitHub Actions (`.github/workflows/ci.yml`).
+  - [x] Automatización con `Makefile` (`make install`, `make test`, `make api`, `make dashboard`, `make docker-up`).
+  - [x] Documentación ejecutiva de alto impacto en `README.md` y bitácora final en `plan.md`.
 
 ---
 
@@ -215,3 +216,24 @@ retail-intelligence-platform/
 ### Decisión de Arquitectura: Elección de XGBoost como Champion Model
 - **Justificación:** En el benchmark de validación, **XGBoost Global Multi-Serie** demostró ser el mejor modelo individual ($RMSLE = 0.4130$, $WAPE = 15.23\%$, $Bias = -2.34\%$).
 - **Descarte del Ensamble para Producción:** El ensamble 50/50 obtuvo $RMSLE = 0.4157$. Al compartir la misma familia algorítmica (árboles de decisión con 49 features idénticos), los residuos estaban altamente correlacionados y LightGBM diluyó la precisión de XGBoost. Descartar el ensamble reduce la latencia de inferencia y la memoria en la API a la mitad.
+
+### Sesión 2 — 21/09/2026
+- **Acciones realizadas en MLOps & API REST (Fase 5):**
+  1. Implementación de `src/retail_platform/api/schemas.py` con validaciones estrictas de tienda (1 a 54), familia y fechas.
+  2. Implementación de `src/retail_platform/api/app.py` con FastAPI utilizando el ciclo de vida `lifespan` para cargar en memoria el modelo campeón XGBoost y las features precalculadas.
+  3. Endpoints construidos:
+     - `GET /health`: Diagnóstico del estado del servicio, confirmación del modelo cargado y total de series (1,782).
+     - `POST /predict`: Inferencia en milisegundos para cualquier tienda y familia en el horizonte de predicción.
+     - `GET /benchmark`: Consulta de la tabla comparativa de modelos evaluados.
+  4. Creación de la suite de pruebas unitarias `tests/test_api.py` ejecutada con `pytest` (5/5 pruebas pasadas al 100%).
+
+### Sesión 3 — 21/09/2026
+- **Acciones realizadas en Dashboard, Docker & CI/CD (Fase 6):**
+  1. Implementación de `dashboards/app.py` en Streamlit con:
+     - Curva interactiva de ventas históricas vs pronóstico del modelo campeón XGBoost.
+     - KPIs ejecutivos: Venta Total Proyectada, Promedio Diario, Día Pico y Horizonte.
+     - Simulador interactivo de impacto y elasticidad promocional (% Uplift).
+     - Tabla comparativa visual de benchmarks ($RMSLE$ y $WAPE$).
+  2. Implementación de `docker/Dockerfile` y `docker-compose.yml` para levantar la API (puerto 8000) y el Dashboard (puerto 8501).
+  3. Configuración de workflow de Integración Continua (CI/CD) con GitHub Actions en `.github/workflows/ci.yml`.
+  4. Creación de `Makefile` para ejecución y pruebas estandarizadas.

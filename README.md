@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Architecture](https://img.shields.io/badge/Architecture-Medallion%20Lakehouse-orange.svg)](#arquitectura-del-sistema)
-[![Status](https://img.shields.io/badge/Status-Fase%204%20ML%20Benchmark%20Completada-success.svg)](#estado-del-proyecto)
+[![Status](https://img.shields.io/badge/Status-Proyecto%20E2E%20Completado%20100%25-success.svg)](#estado-del-proyecto)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 Plataforma integral de **Data Engineering, Feature Store y Machine Learning Forecasting** diseñada para resolver el problema de predicción de demanda multi-serie jerárquica en el sector Retail (Corporación Favorita, Ecuador).
@@ -147,6 +147,21 @@ Calcula las 54 variables de series temporales y quincenas en **~32 segundos**:
 python src/retail_platform/features/builder.py
 ```
 
+### 4. Levantar la API y el Dashboard con Docker Compose
+```bash
+# Iniciar ambos servicios en segundo plano
+docker compose up --build -d
+
+# API disponible en: http://localhost:8000/docs
+# Dashboard disponible en: http://localhost:8501
+```
+
+### 5. Ejecutar la Suite de Pruebas Unitarias
+```bash
+pytest tests/ -v
+```
+
+
 ---
 
 ## 🎯 7. Decisiones de Diseño Clave (ADRs Resumidos)
@@ -164,8 +179,8 @@ python src/retail_platform/features/builder.py
 - [x] **Fase 1:** Pipeline de Data Engineering Medallion (`bronze.py`, `silver.py`, `gold.py`).
 - [x] **Fase 3:** Feature Store & Time Series Feature Engineering (`features_master.parquet`).
 - [x] **Fase 4:** Validación Temporal Purgada, Baselines y Modelo Gradient Boosting (LightGBM: RMSLE = 0.4239 | WAPE = 16.45%).
-- [ ] **Fase 5:** Microservicio de Inferencia con FastAPI y Validación Pydantic.
-- [ ] **Fase 6:** Dashboard Interactivo con Streamlit, Dockerización y CI/CD con GitHub Actions.
+- [x] **Fase 5:** Microservicio de Inferencia con FastAPI, Validación Pydantic y Suite de Pruebas Pytest.
+- [x] **Fase 6:** Dashboard Interactivo con Streamlit, Dockerización, CI/CD con GitHub Actions y Makefile.
 
 ---
 *Desarrollado como proyecto emblema de arquitectura de datos y Machine Learning para Retail.*
